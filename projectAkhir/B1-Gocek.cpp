@@ -115,6 +115,21 @@ bool validasiPass(const string& pass) {
     return regex_match(pass, pattern);
 }
 
+bool validasiNamaProduk(const string& nama) {
+    regex pattern("^[a-zA-Z0-9\\s]+$"); //huruf angka spaso
+    return regex_match(nama, pattern) && !nama.empty();
+}
+
+bool validasiAngka(const string& input) {
+    regex pattern("^[0-9]+$"); //angka >0
+    return regex_match(input, pattern) && !input.empty();
+}
+
+bool validasiAngkaDecimal(const string& input) {
+    regex pattern("^[0-9]+(\\.[0-9]+)?$"); //desimal
+    return regex_match(input, pattern) && !input.empty();
+}
+
 bool isUsernameUnique(const string& uname) {
     for (const auto& u : users) {
         if (u.username == uname) return false;
@@ -218,6 +233,58 @@ vector<Product> filterByJenis(const string& jenis) {
         if (p.jenis == jenis)
             res.push_back(p);
     return res;
+}
+
+double getValidDouble(const string& prompt, double minVal = 0.01) {
+    string input;
+    double value;
+    while (true) {
+        cout << prompt;
+        getline(cin, input);
+        
+        if (!validasiAngkaDecimal(input)) {
+            cout << "Input tidak valid! Hanya boleh menggunakan angka dan titik desimal.\n";
+            continue;
+        }
+        
+        try {
+            value = stod(input);
+            if (value < minVal) {
+                cout << "Input tidak valid! Nilai harus minimal " << minVal << ".\n";
+                continue;
+            }
+            return value;
+        } catch (const exception&) {
+            cout << "Input tidak valid! Angka tidak dapat diproses.\n";
+            continue;
+        }
+    }
+}
+
+int getValidInteger(const string& prompt, int minVal = 1) {
+    string input;
+    int value;
+    while (true) {
+        cout << prompt;
+        getline(cin, input);
+        
+        if (!validasiAngka(input)) {
+            cout << "Input tidak valid! Hanya boleh menggunakan angka (0-9).\n";
+            continue;
+        }
+        
+        try {
+            value = stoi(input);
+            if (value < minVal) {
+                cout << "Input tidak valid! Nilai harus minimal " << minVal << ".\n";
+                continue;
+            }
+            return value;
+        } catch (const exception&) {
+            cout << "Input tidak valid! Angka terlalu besar.\n";
+            continue;
+        }
+    }
 }
 
 //rekursif
@@ -650,8 +717,15 @@ void menuKasir(User* user) {
                         Product p;
                         p.id = products.empty() ? 1 : products.back().id + 1;
                         cout << "Nama: ";
-                        cin >> ws; 
-                        getline(cin, p.nama); 
+                        string inputNama;
+                        getline(cin, inputNama);
+
+                        if (!validasiNamaProduk(inputNama)) {
+                        cout << "Nama produk tidak valid! Hanya boleh menggunakan huruf, angka, dan spasi.\n";
+                        system("pause");
+                        continue;
+                    }
+                    p.nama = inputNama;
 
                         cout << "Pilih Jenis Produk:\n";
                         for (int i = 0; i < 5; ++i) {
@@ -660,20 +734,9 @@ void menuKasir(User* user) {
                         int jenisChoice = getInputMenu(1, 5);
                         p.jenis = jenisProduk[jenisChoice - 1];
 
-                        cout << "Harga: ";
-                        while (!(cin >> p.harga) || p.harga <= 0) {
-                            cout << "Input tidak valid! Harga harus berupa angka lebih dari 0. Masukkan harga kembali: ";
-                            cin.clear();
-                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        }
+                        p.harga = getValidDouble("Harga: ");
 
-                        cout << "Stok: ";
-                        while (!(cin >> p.stok) || p.stok <= 0) {
-                            cout << "Input tidak valid! Stok harus berupa angka lebih dari 0. Masukkan stok kembali: ";
-                            cin.clear();
-                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        }
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        p.stok = getValidInteger("Stok: ");
                         
                         p.pembelian = 0;
                         products.push_back(p);
@@ -714,25 +777,13 @@ void menuKasir(User* user) {
                         p_edit->jenis = jenisProduk[jenisChoice - 1];
                         }
 
-                        cout << "Harga baru (masukkan 0 jika tidak ingin mengubah): ";
-                        double newHarga;
-                        while (!(cin >> newHarga) || newHarga < 0) { 
-                            cout << "Input tidak valid! Harga harus berupa angka positif atau 0. Masukkan harga baru: ";
-                            cin.clear();
-                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        }
+                        double newHarga = getValidDouble("Harga baru (masukkan 0 jika tidak ingin mengubah): ", 0);
+
                         if (newHarga > 0) {
                             p_edit->harga = newHarga;
                         }
 
-                        cout << "Stok baru (masukkan 0 jika tidak ingin mengubah): ";
-                        int newStok;
-                        while (!(cin >> newStok) || newStok < 0) { 
-                            cout << "Input tidak valid! Stok harus berupa angka positif atau 0. Masukkan stok baru: ";
-                            cin.clear();
-                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        }
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+                        int newStok = getValidInteger("Stok baru (masukkan 0 jika tidak ingin mengubah): ", 0); 
                         if (newStok > 0) { 
                             p_edit->stok = newStok;
                         } else if (newStok == 0 && p_edit->stok > 0) {
