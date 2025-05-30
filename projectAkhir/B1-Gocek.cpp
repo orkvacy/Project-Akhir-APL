@@ -601,7 +601,7 @@ void menuBeliBarang(User* user) {
                 }
                 int inv_id = invoices.size() + 1;
                 invoices.push_back({inv_id, user->username, cart, total, "Pending", time(0)});
-                cout << "INVOICE";
+                cout << "INVOICE\n";
                 printTableInvoice(invoices.back());
                 cart.clear();
                 system("pause");
